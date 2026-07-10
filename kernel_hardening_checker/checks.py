@@ -280,13 +280,15 @@ def add_kconfig_checks(l: list[ChecklistObjType], arch: str) -> None:
              # UBSAN_SANITIZE_ALL was enabled by default in UBSAN in v6.9
     l += [OR(KconfigCheck('self_protection', 'kspp', 'SCHED_STACK_END_CHECK', 'y'),
              vmap_stack_is_set)]
-    stackleak_is_set = OR(KconfigCheck('self_protection', 'kspp', 'KSTACK_ERASE', 'y'),
-                          KconfigCheck('self_protection', 'kspp', 'GCC_PLUGIN_STACKLEAK', 'y'))
+    stackleak_is_set = OR(
+        KconfigCheck('self_protection', 'kspp', 'GCC_PLUGIN_STACKLEAK', 'y'),
+        AND(KconfigCheck('self_protection', 'kspp', 'KSTACK_ERASE', 'y'),
+            VersionCheck((6, 17, 0))))
     l += [stackleak_is_set]
-    l += [AND(KconfigCheck('self_protection', 'kspp', 'KSTACK_ERASE_METRICS', 'is not set'),
+    l += [OR(KconfigCheck('self_protection', 'kspp', 'KSTACK_ERASE_METRICS', 'is not set'),
               KconfigCheck('self_protection', 'kspp', 'STACKLEAK_METRICS', 'is not set'),
               stackleak_is_set)]
-    l += [AND(KconfigCheck('self_protection', 'kspp', 'KSTACK_ERASE_RUNTIME_DISABLE', 'is not set'),
+    l += [OR(KconfigCheck('self_protection', 'kspp', 'KSTACK_ERASE_RUNTIME_DISABLE', 'is not set'),
               KconfigCheck('self_protection', 'kspp', 'STACKLEAK_RUNTIME_DISABLE', 'is not set'),
               stackleak_is_set)]
     if arch in {'X86_64', 'ARM64', 'X86_32', 'ARM'}:
